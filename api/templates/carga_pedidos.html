@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Generar Pedido - Cargar JSON</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #2c3e50;
+            color: white;
+            margin: 0;
+            padding: 20px;
+        }
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background-color: rgba(44, 62, 80, 0.8);
+            padding: 20px;
+            border-radius: 8px;
+            text-align: center;
+        }
+        h1 {
+            font-size: 2.5em;
+        }
+        table {
+            width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
+            padding: 10px;
+            border: 1px solid #27ae60;
+            text-align: left;
+        }
+        th {
+            background-color: #27ae60;
+        }
+        input[type="text"], input[type="number"] {
+            padding: 5px;
+            margin: 10px;
+            width: 100px;
+        }
+        button {
+            background-color: #27ae60;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            margin-top: 20px;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        button:hover {
+            background-color: #2ecc71;
+        }
+        .cancel-button {
+            background-color: #c0392b; /* Color rojo para el botón de cancelar */
+        }
+        .cancel-button:hover {
+            background-color: #e74c3c; /* Hover para el botón de cancelar */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Generar Pedido</h1>
+        <table id="materialTable">
+            <thead>
+                <tr>
+                    <th>Material</th>
+                    <th>Cantidad</th>
+                </tr>
+            </thead>
+            <tbody>
+                <!-- Filas se agregarán aquí dinámicamente -->
+            </tbody>
+        </table>
+        <div>
+            <input type="text" id="materialInput" placeholder="Material">
+            <input type="number" id="cantidadInput" placeholder="Cantidad">
+            <button onclick="agregarFila()">Agregar Material</button>
+        </div>
+        <div>
+            <button onclick="cancelar()" class="cancel-button">Cancelar</button>
+            <button onclick="guardarDatos()">Aceptar</button>
+        </div>
+    </div>
+
+    <script>
+        // Variable para almacenar los materiales y cantidades
+        let materialesData = [];
+
+        // Función para agregar una nueva fila a la tabla
+        function agregarFila() {
+            const material = document.getElementById('materialInput').value;
+            const cantidad = document.getElementById('cantidadInput').value;
+            if (material && cantidad) {
+                const tableBody = document.getElementById('materialTable').getElementsByTagName('tbody')[0];
+                const row = tableBody.insertRow();
+                const materialCell = row.insertCell(0);
+                const cantidadCell = row.insertCell(1);
+                materialCell.textContent = material;
+                cantidadCell.textContent = cantidad;
+
+                // Agregar al diccionario
+                materialesData.push({ material, cantidad });
+
+                // Limpiar campos
+                document.getElementById('materialInput').value = '';
+                document.getElementById('cantidadInput').value = '';
+            } else {
+                alert("Por favor, ingresa ambos campos: Material y Cantidad");
+            }
+        }
+
+        // Función para cancelar y regresar a la página anterior
+        function cancelar() {
+            window.history.back(); // Regresar a la página anterior
+        }
+
+        // Función para obtener el token CSRF
+        function getCookie(name) {
+            let cookieValue = null;
+            if (document.cookie && document.cookie !== '') {
+                const cookies = document.cookie.split(';');
+                for (let i = 0; i < cookies.length; i++) {
+                    const cookie = cookies[i].trim();
+                    // Comprobar si esta cookie empieza con el nombre que buscamos
+                    if (cookie.substring(0, name.length + 1) === (name + '=')) {
+                        cookieValue = decodeURIComponent(cookie.substring(name.length + 1));
+                        break;
+                    }
+                }
+            }
+            return cookieValue;
+        }
+
+// Función para guardar datos y enviar el JSON
+function guardarDatos() {
+    
+    const jsonData = JSON.stringify(materialesData);
+    if (!materialesData.length) {
+      alert('Falta cargar materiales')
+      return;
+    }
+    fetch('', {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': getCookie('csrftoken'), // Aquí se agrega el token CSRF
+        },
+        body: jsonData,
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            window.location.href = '/api/CRC'; // Redirige a CRC.html
+        } else {
+            alert("Error: " + data.error);
+        }
+    })
+    .catch(error => {
+        console.error('Error:', error);
+        alert("Hubo un error al enviar el pedido");
+    });
+}    </script>
+
+</body>
+</html>
