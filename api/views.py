@@ -57,7 +57,7 @@ def carga_pedidos(request):
             data = json.loads(request.body)
 
             # Obtener cliente_id, por ejemplo, del usuario autenticado
-            id_cliente = request.user.id if request.user.is_authenticated else 'User Test'
+            id_cliente = request.user if request.user.is_authenticated else 'User Test'
 
             # Obtener la fecha actual
             date_now = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
