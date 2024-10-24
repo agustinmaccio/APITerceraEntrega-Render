@@ -1,10 +1,6 @@
 from django.contrib.auth.models import AbstractUser
 from django.db import models
 
-class Pedido(models.Model):
-    cliente = models.ForeignKey(AbstractUser, on_delete=models.CASCADE)  # Relación con el usuario
-    fecha = models.DateTimeField()  # Fecha del pedido
-    data = models.JSONField()  # Almacenamos el JSON con los materiales
 class CustomUser(AbstractUser):
     direccion = models.CharField(max_length=255)
     telefono = models.CharField(max_length=20)
@@ -17,3 +13,7 @@ class CustomUser(AbstractUser):
 
     def __str__(self):
         return self.username
+class Pedido(models.Model):
+    cliente = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  # Relación con el usuario
+    fecha = models.DateTimeField()  # Fecha del pedido
+    data = models.JSONField()  # Almacenamos el JSON con los materiales
