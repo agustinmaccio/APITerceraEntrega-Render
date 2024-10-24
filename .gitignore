@@ -1,10 +1,7 @@
 # Byte-compiled files
 __pycache__/
 *.py[cod]
-# Django migrations
-*/migrations/*.py
-*/migrations/*.pyc
-*/migrations/__init__.py
+
 # Database files
 *.sqlite3
 # Environment variables
