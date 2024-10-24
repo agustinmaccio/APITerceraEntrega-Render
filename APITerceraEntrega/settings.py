@@ -141,10 +141,10 @@ from decouple import config
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',  # Cambia a 'django.db.backends.sqlite3' si usas SQLite
-        'NAME': os.getenv('DATABASE_NAME'),
-        'USER': os.getenv('DATABASE_USER'),
-        'PASSWORD': os.getenv('DATABASE_PASSWORD'),
-        'HOST': os.getenv('DATABASE_HOST'),
+        'NAME': os.getenv('DATABASE_NAME',"tpapi"),
+        'USER': os.getenv('DATABASE_USER',"postgres"),
+        'PASSWORD': os.getenv('DATABASE_PASSWORD',"root"),
+        'HOST': os.getenv('DATABASE_HOST',"localhost"),
         'PORT': os.getenv('DATABASE_PORT', '5432'),  
     }
 }

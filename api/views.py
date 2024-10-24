@@ -48,7 +48,7 @@ def CRC(request):
 
 
 @api_view(['GET', 'POST'])
-@permission_classes([IsAuthenticated, IsDepositosGlobales])  # Requiere autenticación y permiso de "Depósitos Globales"
+@permission_classes([IsAuthenticated])  
 def carga_pedidos(request):
     if request.method == 'POST':
         # Procesar el JSON recibido
@@ -82,7 +82,7 @@ class UserRegistrationView(APIView):
 
 
 class PedidosAPIView(APIView):
-    @permission_classes([IsAuthenticated,IsDepositosProveedores])
+    @permission_classes([IsAuthenticated])
     def get(self, request):
         today = timezone.now().date() 
         pedidos = Pedido.objects.filter(fecha__date=today)
