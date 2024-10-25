@@ -16,9 +16,11 @@ from .serializers import UserRegistrationSerializer, PedidoSerializer
 from .models import Pedido
 from .permissions import IsDepositosGlobales, IsDepositosProveedores
 
+
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
 
+    @api_view(['POST'])
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
