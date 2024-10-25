@@ -3,6 +3,7 @@ import pprint
 from django.utils import timezone 
 from django.shortcuts import render
 from django.http import JsonResponse
+from datetime import datetime 
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -83,9 +84,19 @@ class UserRegistrationView(APIView):
 
 class PedidosAPIView(APIView):
     @permission_classes([IsAuthenticated])
-    def get(self, request):
-        today = timezone.now().date() 
-        pedidos = Pedido.objects.filter(fecha__date=today)
+    def get(self, request, fecha=None):  # `fecha` ahora viene de la URL
+        if fecha:
+            try:
+                # Convierte el parámetro `fecha` usando el formato `YYYY-MM-DD`
+                fecha_obj = datetime.strptime(fecha, '%d-%m-%Y').date()
+            except ValueError:
+                return Response({'error': 'Fecha no válida. Use el formato YYYY-MM-DD.'}, status=400)
+        else:
+            # Si no se proporciona fecha, usa la fecha de hoy
+            fecha_obj = timezone.now().date()
+
+        # Filtra los pedidos por la fecha resultante
+        pedidos = Pedido.objects.filter(fecha__date=fecha_obj)
         serializer = PedidoSerializer(pedidos, many=True)
         return Response(serializer.data)
         

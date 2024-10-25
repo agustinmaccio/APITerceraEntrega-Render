@@ -9,7 +9,10 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
     rol = serializers.ChoiceField(choices=[
         ('depositos_globales', 'Depósitos Globales'),
         ('depositos_proveedores', 'Depósitos Proveedores')
-    ])
+    ], required=False)
+    direccion = serializers.CharField(required=False, allow_blank=True)
+    telefono = serializers.CharField(required=False, allow_blank=True)
+    nombre = serializers.CharField(required=False, allow_blank=True)
 
     class Meta:
         model = User
@@ -24,7 +27,7 @@ class UserRegistrationSerializer(serializers.ModelSerializer):
             direccion=validated_data.get('direccion', ''),
             telefono=validated_data.get('telefono', ''),
             nombre=validated_data.get('nombre', ''),
-            rol=validated_data.get('rol')
+            rol=validated_data.get('rol', '')
         )
 
         return user
