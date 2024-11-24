@@ -12,15 +12,14 @@ from rest_framework.decorators import api_view, permission_classes
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import AccessToken, RefreshToken
 from django.shortcuts import render, redirect
-from .serializers import UserRegistrationSerializer, PedidoSerializer
-from .models import Pedido
+from .serializers import UserRegistrationSerializer, PedidoSerializer, ReservaSerializer
+from .models import Pedido, Reserva
 from .permissions import IsDepositosGlobales, IsDepositosProveedores
 
 
 class UserLoginView(APIView):
     permission_classes = [AllowAny]
 
-    @api_view(['POST'])
     def post(self, request):
         username = request.data.get("username")
         password = request.data.get("password")
@@ -54,24 +53,26 @@ def CRC(request):
 @permission_classes([IsAuthenticated])  
 def carga_pedidos(request):
     if request.method == 'POST':
-        # Procesar el JSON recibido
-        try:
-            # Cargar el JSON desde el body de la petición
-            data = json.loads(request.body)
+        # Asigna el cliente al usuario autenticado
+        cliente = request.user
+        
+        # Obtiene los datos del pedido enviados en la solicitud
+        data = request.data
+        data['cliente'] = cliente.id  # Asigna el ID del cliente al campo cliente
 
-            # Obtener cliente_id, por ejemplo, del usuario autenticado
-            id_cliente = request.user if request.user.is_authenticated else 'User Test'
+        # Crea el pedido con el usuario autenticado como cliente
+        serializer = PedidoSerializer(data=data)
 
-            # Obtener la fecha actual
-            date_now = timezone.now().strftime('%Y-%m-%d %H:%M:%S')
-
-            # Guarda en la base de datos
-            pedido = Pedido(cliente=id_cliente, fecha=date_now, data=data)
-            pedido.save()
-
-            return JsonResponse({'success': True, 'data': data}, status=200)
-        except json.JSONDecodeError:
-            return JsonResponse({'success': False, 'error': 'Invalid JSON'}, status=400)
+        if serializer.is_valid():
+            # Si los datos son válidos, guarda el nuevo pedido y asigna el cliente
+            pedido = serializer.save(cliente=cliente)
+            return Response({
+                "success": "Pedido creado con éxito.",
+                "data": PedidoSerializer(pedido).data
+            }, status=status.HTTP_201_CREATED)
+        else:
+            # Si los datos no son válidos, retorna los errores
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
     return render(request, 'carga_pedidos.html')
         
@@ -102,3 +103,53 @@ class PedidosAPIView(APIView):
         serializer = PedidoSerializer(pedidos, many=True)
         return Response(serializer.data)
         
+class UserReservasView(APIView):
+    """
+    Vista para listar las reservas del usuario autenticado.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def get(self, request):
+        # Obtiene el usuario autenticado
+        user = request.user
+
+        # Filtra las reservas asociadas al usuario autenticado
+        reservas = Reserva.objects.filter(cliente=user)
+
+        # Serializa los datos
+        serializer = ReservaSerializer(reservas, many=True)
+
+        # Devuelve la respuesta con las reservas del usuario
+        return Response(serializer.data, status=status.HTTP_200_OK)
+class UserReservaCreateView(APIView):
+    """
+    Vista para crear una reserva para el usuario autenticado.
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        # Obtiene el usuario autenticado
+        user = request.user
+
+        # Obtiene los datos de la reserva desde el cuerpo de la solicitud
+        data = request.data
+        
+        # Asigna el cliente al usuario autenticado (esto puede ser un ForeignKey en tu modelo Reserva)
+        data['cliente_id'] = user.id  # Asegura que el cliente es el usuario autenticado
+
+        # Crea un serializer con los datos recibidos
+        serializer = ReservaSerializer(data=data)
+
+        # Verifica si los datos son válidos
+        if serializer.is_valid():
+            # Guarda la reserva en la base de datos
+            reserva = serializer.save(cliente=user)
+
+            # Devuelve la respuesta con los datos de la reserva creada
+            return Response({
+                'success': True,
+                'data': ReservaSerializer(reserva).data
+            }, status=status.HTTP_201_CREATED)
+        
+        # Si los datos no son válidos, retorna los errores
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)

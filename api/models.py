@@ -15,5 +15,15 @@ class CustomUser(AbstractUser):
         return self.username
 class Pedido(models.Model):
     cliente = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  # Relación con el usuario
-    fecha = models.DateTimeField()  # Fecha del pedido
-    data = models.JSONField()  # Almacenamos el JSON con los materiales
+    fecha = models.DateTimeField(auto_now_add=True)  # Fecha del pedido
+    material = models.CharField(max_length=100)  # Nombre del material
+    cantidad = models.PositiveIntegerField()  # Cantidad del material
+class Reserva(models.Model):
+    ESTADO_CHOICES = [
+        ('pendiente', 'Pendiente'),
+        ('entregada', 'Entregada'),
+    ]
+    pedido = models.ForeignKey(Pedido, on_delete=models.CASCADE)  # Relación con el pedido
+    cliente = models.ForeignKey(CustomUser, on_delete=models.CASCADE)  # Relación con el cliente (usuario)
+    estado = models.CharField(max_length=50, choices=ESTADO_CHOICES, default='pendiente')  # Estado de la reserva
+
