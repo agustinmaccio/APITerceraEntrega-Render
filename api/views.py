@@ -100,6 +100,7 @@ class PedidosAPIView(APIView):
 
         # Filtra los pedidos por la fecha resultante
         pedidos = Pedido.objects.filter(fecha__date=fecha_obj)
+        pedidos = pedidos.filter(reserva__isnull=False)
         serializer = PedidoSerializer(pedidos, many=True)
         return Response(serializer.data)
         
